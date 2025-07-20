@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import type { Business, CreateBusinessRequest, UpdateBusinessRequest } from '../entities/business';
 import { useAuth } from './AuthContext';
@@ -43,18 +43,7 @@ export const BusinessProvider = ({ children }: BusinessProviderProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // טעינת עסקים מהשרת
-  useEffect(() => {
-    if (!user) {
-      setBusinesses([]);
-      setCurrentBusiness(null);
-      return;
-    }
-
-    loadBusinesses();
-  }, [user]);
-
-  const loadBusinesses = async () => {
+  const loadBusinesses = useCallback(async () => {
     setIsLoading(true);
     try {
       // טעינת נתוני דוגמה בפעם הראשונה (למצב Mock)
@@ -85,7 +74,18 @@ export const BusinessProvider = ({ children }: BusinessProviderProps) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user]);
+
+  // טעינת עסקים מהשרת
+  useEffect(() => {
+    if (!user) {
+      setBusinesses([]);
+      setCurrentBusiness(null);
+      return;
+    }
+
+    loadBusinesses();
+  }, [user, loadBusinesses]);
 
   const createBusiness = async (data: CreateBusinessRequest): Promise<Business> => {
     setIsLoading(true);

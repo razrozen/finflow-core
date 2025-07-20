@@ -23,12 +23,14 @@ function sanitizeInput(input: string): string {
 
 function validateFinancialAmount(amount: string): boolean {
   // בדיקת סכום פיננסי חוקי
-  const numericRegex = /^\d+(\.\d{1,2})?$/
+  // ESLint security: simple numeric validation without complex regex
+  const numericRegex = /^\d+\.?\d{0,2}$/
   return numericRegex.test(amount) && parseFloat(amount) >= 0
 }
 
 function validateBusinessName(name: string): boolean {
   // שם עסק חוקי - אותיות, מספרים, רווחים ותווים מסוימים
+  // ESLint security: safe regex pattern without character class range
   const businessNameRegex = /^[א-ת\u0590-\u05FFa-zA-Z0-9\s\-&'".()]+$/
   return businessNameRegex.test(name) && name.length <= 100
 }

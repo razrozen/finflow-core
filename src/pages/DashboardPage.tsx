@@ -4,9 +4,21 @@ import QuickBusinessCreator from '../components/QuickBusinessCreator';
 import BusinessStatus from '../components/BusinessStatus';
 import BusinessManagerDemo from '../components/BusinessManagerDemo';
 import { BusinessSelectorDemo } from '../components/business';
+import DocumentUpload from '../modules/documents/components/DocumentUpload';
+import DocumentsList from '../modules/documents/components/DocumentsList';
+import type { FinancialData } from '../modules/documents/services/ocrService';
 
 const DashboardPage = () => {
   const { currentBusiness, businesses } = useBusinessContext();
+
+  // פונקציה לטיפול בטקסט מחולץ מ-OCR
+  const handleTextExtracted = (text: string, financialData: FinancialData) => {
+    console.log('📄 טקסט נחלץ:', text);
+    console.log('💰 מידע פיננסי:', financialData);
+    
+    // כאן נוכל לשלוח את הנתונים לשרת או לשמור מקומית
+    // לדוגמה: שמירת הקבלה לרשימת ההוצאות
+  };
 
   return (
     <div className="space-y-6">
@@ -104,6 +116,20 @@ const DashboardPage = () => {
           <h3 className="font-bold text-gray-800 mb-2">דוחות</h3>
           <p className="text-sm text-gray-600">ניתוח נתונים ודוחות AI</p>
         </Link>
+      </div>
+
+      {/* העלאת מסמכים עם OCR */}
+      <div className="mt-8">
+        <DocumentUpload 
+          onTextExtracted={handleTextExtracted}
+          className="max-w-4xl mx-auto"
+        />
+      </div>
+
+      {/* רשימת מסמכים שמורים */}
+      <div className="mt-8">
+        <h3 className="text-2xl font-bold text-slate-800 mb-6">📚 מסמכים שמורים</h3>
+        <DocumentsList />
       </div>
       
       {/* דמו למפתחים - ניהול עסקים */}

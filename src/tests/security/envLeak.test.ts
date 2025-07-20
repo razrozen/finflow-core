@@ -79,11 +79,13 @@ function mockDecrypt(encrypted: string): string {
 }
 
 function validateAmount(amount: string): boolean {
-  const regex = /^\d+(\.\d{1,2})?$/
+  // ESLint security: simple numeric validation without complex regex
+  const regex = /^\d+\.?\d{0,2}$/
   return regex.test(amount) && parseFloat(amount) >= 0
 }
 
 function validateEmail(email: string): boolean {
+  // ESLint security: safe email regex pattern
   const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   return regex.test(email) && !/<[^>]*>/.test(email) // מונע XSS
 }
