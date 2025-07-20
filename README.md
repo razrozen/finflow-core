@@ -49,6 +49,14 @@ npm run test
 - **סינון XSS / SQLi** - ניקוי קלט מתקדם
 - **תאימות GDPR** - ניהול נתונים אחראי
 
+## 📄 מדיניות משפטית
+
+- [מדיניות פרטיות (עברית)](legal/PRIVACY_POLICY.he.md)
+- [Privacy Policy (English)](legal/PRIVACY_POLICY.en.md)
+- [נוהל עיבוד מידע](legal/DATA_HANDLING.md)
+- [הסכם זכויות קניין רוחני](legal/IP_OWNERSHIP_AGREEMENT.md)
+- [תנאי שימוש](legal/TERMS_OF_SERVICE.md)
+
 ## 🏗️ מבנה הפרויקט
 
 ```
