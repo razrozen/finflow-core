@@ -15,9 +15,9 @@ export const AccountantExpert = {
       });
 
       const answer = response.choices[0].message?.content || "מצטער, לא הצלחתי לענות על השאלה.";
-      return `� [רואה חשבון]: ${answer}`;
-    } catch (error) {
-      return `� [רואה חשבון]: מצטער, יש בעיה בשירות. אנא נסה שוב מאוחר יותר.`;
+      return `🧮 [רואה חשבון]: ${answer}`;
+    } catch (_error) {
+      return `🧮 [רואה חשבון]: מצטער, יש בעיה בשירות. אנא נסה שוב מאוחר יותר.`;
     }
   },
 };

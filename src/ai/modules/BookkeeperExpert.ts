@@ -15,9 +15,9 @@ export const BookkeeperExpert = {
       });
 
       const answer = response.choices[0].message?.content || "מצטער, לא הצלחתי לענות על השאלה.";
-      return `📋 [מנהל חשבונות]: ${answer}`;
-    } catch (error) {
-      return `📋 [מנהל חשבונות]: מצטער, יש בעיה בשירות. אנא נסה שוב מאוחר יותר.`;
+      return `� [מנהל חשבונות]: ${answer}`;
+    } catch (_error) {
+      return `� [מנהל חשבונות]: מצטער, יש בעיה בשירות. אנא נסה שוב מאוחר יותר.`;
     }
   },
 };

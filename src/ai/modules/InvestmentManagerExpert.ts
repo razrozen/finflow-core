@@ -16,7 +16,7 @@ export const InvestmentManagerExpert = {
 
       const answer = response.choices[0].message?.content || "מצטער, לא הצלחתי לענות על השאלה.";
       return `📈 [מנהל השקעות]: ${answer}`;
-    } catch (error) {
+    } catch (_error) {
       return `📈 [מנהל השקעות]: מצטער, יש בעיה בשירות. אנא נסה שוב מאוחר יותר.`;
     }
   },

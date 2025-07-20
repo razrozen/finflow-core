@@ -28,5 +28,5 @@ jobs:
       - name: ✅ Lint check
         run: npx eslint . --ext .ts,.tsx || true
 
-      - name: 🧪 Run tests (אם קיימים)
-        run: npm test || echo "No tests found"
+      - name: 🧪 Run tests
+        run: npm run test

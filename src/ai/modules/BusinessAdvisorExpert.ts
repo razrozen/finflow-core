@@ -16,7 +16,7 @@ export const BusinessAdvisorExpert = {
 
       const answer = response.choices[0].message?.content || "מצטער, לא הצלחתי לענות על השאלה.";
       return `💼 [יועץ עסקי]: ${answer}`;
-    } catch (error) {
+    } catch (_error) {
       return `💼 [יועץ עסקי]: מצטער, יש בעיה בשירות. אנא נסה שוב מאוחר יותר.`;
     }
   },

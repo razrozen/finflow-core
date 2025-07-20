@@ -2,14 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 
 describe('🤖 בדיקות AI ויועץ פיננסי', () => {
   it('בודק תגובות AI לא מכילות מידע רגיש', () => {
-    const mockAIResponse = generateMockAIResponse({
-      userInput: 'איך לשפר את הרווחיות?',
-      businessData: {
-        revenue: 100000,
-        expenses: 75000,
-        industry: 'טכנולוגיה'
-      }
-    })
+    const mockAIResponse = generateMockAIResponse()
 
     // וידוא שהתגובה לא חושפת מידע רגיש
     expect(mockAIResponse).not.toContain('100000') // לא חושף סכומים מדויקים
@@ -77,7 +70,7 @@ describe('🤖 בדיקות AI ויועץ פיננסי', () => {
 })
 
 // פונקציות עזר וmocks
-function generateMockAIResponse(_input: any): string {
+function generateMockAIResponse(): string {
   // מידע עסקי כללי בלבד, ללא חשיפת נתונים רגישים
   return `בהתבסס על הענף שלך, מומלץ להתמקד בהגדלת יעילות התפעול ובמציאת זרמי הכנסה נוספים. שקול השקעה בטכנולוגיות שיפור תהליכים.`
 }
@@ -120,13 +113,13 @@ function generateFinancialAdvice(params: any) {
 async function handleAIRequest(query: string, aiFunction: Function) {
   try {
     return await aiFunction(query)
-  } catch (error) {
+  } catch (_error) {
     throw new Error('שירות הAI אינו זמין כרגע')
   }
 }
 
 function sanitizeForAI(userData: any) {
   // הסרת מידע אישי לפני שליחה ל-AI
-  const { name, email, phone, id, ...businessData } = userData
+  const { name: _name, email: _email, phone: _phone, id: _id, ...businessData } = userData
   return businessData
 }
