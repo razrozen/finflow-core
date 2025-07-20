@@ -1,4 +1,63 @@
-# 📚 מדריך API - FinFlow
+# � FinFlow - תיעוד API פנימי
+
+---
+
+## 🔐 הרשאות
+
+- כל קריאה ל־API עוברת דרך `authMiddleware`
+- ניתן להרחיב את המידול לפי `role: 'admin' | 'editor' | 'viewer'`
+
+---
+
+## 🧾 דוגמאות לקריאות API
+
+### 📥 GET /api/strategy
+
+```ts
+fetch('/api/strategy', {
+  headers: {
+    Authorization: `Bearer ${token}`
+  }
+})
+```
+
+תוצאה:
+```json
+{
+  "strategy": "הגדלת לקוחות ב־15%...",
+  "revenueTarget": 32000
+}
+```
+
+### 📤 POST /api/ai/ask
+
+```ts
+fetch('/api/ai/ask', {
+  method: 'POST',
+  body: JSON.stringify({ prompt: "מה המצב הפיננסי שלי?" }),
+  headers: {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`
+  }
+})
+```
+
+תוצאה:
+```json
+{
+  "response": "הנתונים הפיננסיים שלך מצביעים על גידול של 12%..."
+}
+```
+
+---
+
+## 🗝️ הערות אבטחה
+
+- **חובה להעביר טוקן בכל קריאה**
+- **תיעוד הטוקן מתבצע בצד השרת בלבד**
+- **התממשקות אפשרית ל־OpenAI או AI מותאם דרך Proxy בלבד**
+
+---
 
 ## 🤖 AI Services API
 
