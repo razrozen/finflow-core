@@ -24,4 +24,4 @@ jobs:
         run: npm run build
 
       - name: Run tests
-        run: echo "Hello from GitHub Actions"
+        run: npm test
