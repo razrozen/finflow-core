@@ -19,15 +19,65 @@ export interface DocumentStats {
   categoryDistribution: Record<string, number>;
 }
 
+// 🔒 הגדרות אבטחה וגבולות
+const MAX_DOCUMENTS = 100; // מקסימום מסמכים לשמירה
+const MAX_TEXT_LENGTH = 10000; // מקסימום אורך טקסט למסמך
+const STORAGE_KEY = 'finflow_documents';
+
 /**
- * שמירת מסמך מעובד ברשימה מקומית (LocalStorage)
+ * וילידציה של נתוני מסמך לפני שמירה
+ * 🔐 מוודא שהנתונים תקינים ובטוחים
+ */
+function validateDocumentData(document: DocumentData): { isValid: boolean; error?: string } {
+  // בדיקות בסיסיות
+  if (!document.id || !document.fileName || !document.extractedText) {
+    return { isValid: false, error: 'חסרים נתונים חיוניים במסמך' };
+  }
+  
+  // בדיקת אורך טקסט
+  if (document.extractedText.length > MAX_TEXT_LENGTH) {
+    return { isValid: false, error: 'טקסט המסמך ארוך מדי' };
+  }
+  
+  // בדיקת תווים מסוכנים
+  if (/<script|javascript:|on\w+\s*=/i.test(document.extractedText)) {
+    return { isValid: false, error: 'המסמך כולל תוכן לא בטוח' };
+  }
+  
+  // בדיקת שם קובץ
+  if (document.fileName.includes('..') || /[<>:"|?*]/.test(document.fileName)) {
+    return { isValid: false, error: 'שם קובץ לא חוקי' };
+  }
+  
+  return { isValid: true };
+}
+
+/**
+ * שמירת מסמך מעובד ברשימה מקומית
+ * 🔐 כולל בדיקות אבטחה וגבולות נתונים
  */
 export function saveDocument(document: DocumentData): void {
   try {
+    // וילידציה של נתוני הקלט
+    const validation = validateDocumentData(document);
+    if (!validation.isValid) {
+      throw new Error(validation.error);
+    }
+    
     const existingDocs = getDocuments();
+    
+    // בדיקת מגבלת מספר מסמכים
+    if (existingDocs.length >= MAX_DOCUMENTS) {
+      throw new Error(`מקסימום ${MAX_DOCUMENTS} מסמכים מותרים. מחק מסמכים ישנים`);
+    }
+    
     const updatedDocs = [...existingDocs, document];
-    localStorage.setItem('finflow_documents', JSON.stringify(updatedDocs));
-    console.log('✅ מסמך נשמר בהצלחה:', document.fileName);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedDocs));
+    
+    // לוג רק במצב פיתוח
+    if (process.env.NODE_ENV === 'development') {
+      console.log('✅ מסמך נשמר בהצלחה:', document.fileName);
+    }
   } catch (error) {
     console.error('❌ שגיאה בשמירת מסמך:', error);
   }
@@ -35,28 +85,57 @@ export function saveDocument(document: DocumentData): void {
 
 /**
  * קבלת כל המסמכים השמורים
+ * 🔐 כולל בדיקות תקינות נתונים
  */
 export function getDocuments(): DocumentData[] {
   try {
-    const docs = localStorage.getItem('finflow_documents');
-    return docs ? JSON.parse(docs) : [];
+    const docs = localStorage.getItem(STORAGE_KEY);
+    if (!docs) return [];
+    
+    const parsedDocs = JSON.parse(docs);
+    
+    // וילידציה של המבנה
+    if (!Array.isArray(parsedDocs)) {
+      console.warn('⚠️ מבנה נתונים פגום - מנקה אחסון');
+      localStorage.removeItem(STORAGE_KEY);
+      return [];
+    }
+    
+    // סינון מסמכים תקינים בלבד
+    return parsedDocs.filter((doc: any) => {
+      const validation = validateDocumentData(doc);
+      return validation.isValid;
+    });
+    
   } catch (error) {
     console.error('❌ שגיאה בקריאת מסמכים:', error);
+    // במקרה של שגיאה - ניקוי אחסון פגום
+    localStorage.removeItem(STORAGE_KEY);
     return [];
   }
 }
 
 /**
  * מחיקת מסמך לפי ID
+ * 🔐 כולל וילידציה של מזהה
  */
 export function deleteDocument(id: string): void {
   try {
+    // וילידציה של מזהה
+    if (!id || typeof id !== 'string' || id.length < 5) {
+      throw new Error('מזהה מסמך לא תקין');
+    }
+    
     const existingDocs = getDocuments();
     const filteredDocs = existingDocs.filter(doc => doc.id !== id);
-    localStorage.setItem('finflow_documents', JSON.stringify(filteredDocs));
-    console.log('🗑️ מסמך נמחק:', id);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(filteredDocs));
+    
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🗑️ מסמך נמחק:', id);
+    }
   } catch (error) {
     console.error('❌ שגיאה במחיקת מסמך:', error);
+    throw error;
   }
 }
 

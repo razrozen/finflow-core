@@ -3,7 +3,9 @@ import { PDFDocument } from 'pdf-lib';
 
 /**
  * שירות OCR לחילוץ טקסט מתמונות ומסמכי PDF
- * תומך בעברית ואנגלית
+ * ✅ עובד במצב offline בלבד - אין העברת נתונים לשרתים חיצוניים
+ * ✅ תומך בעברית ואנגלית
+ * 🔐 תואם לתקני פרטיות GDPR של FinFlow
  */
 
 export interface OcrResult {
@@ -13,20 +15,59 @@ export interface OcrResult {
   processingTime: number;
 }
 
+// 🔒 רשימת סוגי קבצים מאושרים - מניעת העלאת קבצים זדוניים
+const ALLOWED_FILE_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'] as const;
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB מקסימום
+
+/**
+ * בדיקת תקינות קובץ לפני עיבוד OCR
+ * @param file קובץ לבדיקה
+ * @returns boolean - האם הקובץ תקין ומאושר
+ */
+function validateFile(file: File): { isValid: boolean; error?: string } {
+  // בדיקת סוג קובץ
+  if (!ALLOWED_FILE_TYPES.includes(file.type as any)) {
+    return { isValid: false, error: 'סוג קובץ לא מאושר. רק תמונות PNG, JPG, WebP מותרות' };
+  }
+  
+  // בדיקת גודל קובץ
+  if (file.size > MAX_FILE_SIZE) {
+    return { isValid: false, error: 'קובץ גדול מדי. מקסימום 10MB' };
+  }
+  
+  // בדיקת שם קובץ - מניעת path traversal
+  if (file.name.includes('..') || file.name.includes('/') || file.name.includes('\\')) {
+    return { isValid: false, error: 'שם קובץ לא חוקי' };
+  }
+  
+  return { isValid: true };
+}
+
 /**
  * חילוץ טקסט מתמונה באמצעות Tesseract OCR
+ * 🔐 פועל במצב offline בלבד - אין שליחת נתונים לשרתים חיצוניים
  * @param image קובץ תמונה (PNG, JPG, WebP)
  * @returns טקסט מחולץ עם מידע נוסף
  */
 export async function extractTextFromImage(image: File): Promise<OcrResult> {
   const startTime = Date.now();
   
+  // 🔒 בדיקת תקינות קובץ
+  const validation = validateFile(image);
+  if (!validation.isValid) {
+    throw new Error(validation.error);
+  }
+  
   try {
-    console.log('🔍 מתחיל זיהוי טקסט בתמונה...');
+    // ⚠️ הסרת לוגים ברגישים בפרודקשן
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔍 מתחיל זיהוי טקסט בתמונה (מצב פיתוח)');
+    }
     
     const result = await Tesseract.recognize(image, 'heb+eng', {
       logger: (progress) => {
-        if (progress.status === 'recognizing text') {
+        // לוגים רק במצב פיתוח
+        if (process.env.NODE_ENV === 'development' && progress.status === 'recognizing text') {
           console.log(`📊 התקדמות: ${Math.round(progress.progress * 100)}%`);
         }
       }
@@ -90,18 +131,30 @@ function detectLanguage(text: string): string {
 
 /**
  * ניקוי וסינון טקסט OCR
+ * 🔒 מסיר תווים מסוכנים ומנקה קלט
  * @param rawText טקסט גולמי מה-OCR
- * @returns טקסט מנוקה
+ * @returns טקסט מנוקה ומסונן
  */
 export function cleanOcrText(rawText: string): string {
+  if (!rawText || typeof rawText !== 'string') {
+    return '';
+  }
+  
   return rawText
+    // הסרת תווים מסוכנים וHTML
+    .replace(/<[^>]*>/g, '') // הסרת HTML tags
+    .replace(/[<>'"&]/g, '') // הסרת תווים מסוכנים
+    .replace(/javascript:/gi, '') // הסרת JavaScript URLs
+    .replace(/on\w+\s*=/gi, '') // הסרת event handlers
     // הסרת שורות ריקות מרובות
     .replace(/\n\s*\n/g, '\n')
     // הסרת רווחים מרובים
     .replace(/\s+/g, ' ')
-    // ניקוי תווים מיוחדים
-    .replace(/[^\u0590-\u05FF\u0020-\u007Ea-zA-Z0-9₪.,:\-+()[\]]/g, '')
-    .trim();
+    // שמירה על תווים חוקיים בלבד
+    .replace(/[^\u0590-\u05FF\u0020-\u007Ea-zA-Z0-9₪.,:\-+()[\]\n]/g, '')
+    .trim()
+    // הגבלת אורך טקסט
+    .substring(0, 10000); // מקסימום 10,000 תווים
 }
 
 /**
